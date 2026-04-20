@@ -1,0 +1,43 @@
+# Citation metadata — see https://citation-file-format.github.io/
+# ORCID IDs are placeholders (0000-0000-0000-0000); replace before public release.
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software (this file) and the paper (preferred-citation)."
+title: "Self-scaling inexact Newton methods for entropy-regularized least squares (Section 7 reproduction code)"
+version: 1.0.0
+date-released: "2026-04-20"
+license: MIT
+repository-code: "https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheisel"
+url: "https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheisel"
+authors:
+  - family-names: Barnfield
+    given-names: Nick
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+  - family-names: Burke
+    given-names: James V.
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+  - family-names: Friedlander
+    given-names: Michael P.
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+    email: mpf@cs.ubc.ca
+  - family-names: Hoheisel
+    given-names: Tim
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+keywords:
+  - entropy regularization
+  - Newton methods
+  - analytic continuation
+  - convex optimization
+  - reproducible research
+preferred-citation:
+  type: article
+  title: "Self-scaling inexact Newton methods for entropy-regularized least-squares problems"
+  year: 2026
+  authors:
+    - family-names: Barnfield
+      given-names: Nick
+    - family-names: Burke
+      given-names: James V.
+    - family-names: Friedlander
+      given-names: Michael P.
+    - family-names: Hoheisel
+      given-names: Tim

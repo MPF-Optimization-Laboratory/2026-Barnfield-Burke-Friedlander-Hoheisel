@@ -1,0 +1,27 @@
+{
+  "title": "Self-scaling inexact Newton methods for entropy-regularized least squares (Section 7 reproduction code)",
+  "description": "Companion code to Section 7 of Barnfield, Burke, Friedlander, Hoheisel (2026). Reproduces the four numerical figures for the uniform-electron-gas analytic-continuation experiment.",
+  "upload_type": "software",
+  "license": "mit-license",
+  "keywords": [
+    "entropy regularization",
+    "Newton methods",
+    "analytic continuation",
+    "convex optimization",
+    "reproducible research"
+  ],
+  "creators": [
+    { "name": "Barnfield, Nick", "orcid": "0000-0000-0000-0000" },
+    { "name": "Burke, James V.", "orcid": "0000-0000-0000-0000" },
+    { "name": "Friedlander, Michael P.", "affiliation": "University of British Columbia", "orcid": "0000-0000-0000-0000" },
+    { "name": "Hoheisel, Tim", "orcid": "0000-0000-0000-0000" }
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.48550/arXiv.XXXX.XXXXX",
+      "relation": "isSupplementTo",
+      "scheme": "doi",
+      "resource_type": "publication-article"
+    }
+  ]
+}
