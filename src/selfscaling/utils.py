@@ -121,7 +121,8 @@ def lambert_w_bounds(A, b, c, mu, lam, beta):
     q_sum = float(np.sum(mu))
     c_min = float(np.min(c))
     c_max = float(np.max(c))
-    A_max = float(norm(A, ord=np.inf))  # max row-sum norm
+    # A_max := max_i ||A_i|| over columns A_i of A (paper eq (3.2)).
+    A_max = float(np.max(norm(A, axis=0)))
 
     # Upper bound: τ_max ≤ B / W(B·exp(θ))
     B = (beta + b_norm) ** 2 / (4 * lam)

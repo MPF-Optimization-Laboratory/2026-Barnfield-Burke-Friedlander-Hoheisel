@@ -39,9 +39,9 @@ Problem setup:
 
 
 """
-from __future__ import annotations 
+from __future__ import annotations
 
-from dataclasses import dataclass 
+from dataclasses import dataclass
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 import math
@@ -141,10 +141,15 @@ class Model:
         return quad + lin + ent
 
     def dual_obj_psi(self, y: np.ndarray) -> float:
-        # ψ_d(y) = <b,y> - (λ/2)||y||^2 - exp(-1) * Σ μ_i exp(A_i^T y - c_i)
+        # ψ_d(y) = <b,y> - (λ/2)||y||^2 - Σ μ_i exp(A_i^T y - 1 - c_i)
+        # The sum term can overflow far from optimum; clamp to -inf in that regime
+        # so finalization never crashes on non-converged iterates.
         z = self.A.T @ y - self.c
         _, _, log_sum = softmax_mu(z, self.mu)
-        return float(np.dot(self.b, y)) - 0.5 * self.lam * float(np.dot(y, y)) - math.exp(log_sum - 1.0)
+        lin = float(np.dot(self.b, y)) - 0.5 * self.lam * float(np.dot(y, y))
+        if log_sum - 1.0 > 700.0:  # math.exp would overflow float64
+            return float("-inf")
+        return lin - math.exp(log_sum - 1.0)
 
     def dual_obj_phi(self, y: np.ndarray, tau: float) -> float:
         # ϕ_d(y, τ) = <b,y> - (λ/2)||y||^2 - τ log Σ μ_i exp(A_i^T y - c_i) + τ log τ
@@ -241,25 +246,31 @@ def compute_direction(
         # does NOT enforce the inexact Newton condition ||F + J d|| ≤ η_k ||F||.
         # We set rtol to near machine epsilon and use a callback to enforce (3.14).
         target = float(max(eta_k, rtol)) * F_norm
-        lin_iters = [0]
 
         class _InexactNewtonConverged(Exception):
             def __init__(self, d): self.d = d
 
         def _monitor(d_current):
-            lin_iters[0] += 1
             res_norm = float(np.linalg.norm(Fk + Jk @ d_current))
             if res_norm <= target:
                 raise _InexactNewtonConverged(d_current.copy())
 
         try:
-            d, info = minres(Jk, -Fk, rtol=1e-15, maxiter=max_lin_iters,
-                             callback=_monitor)
+            d, _info = minres(Jk, -Fk, rtol=1e-15, maxiter=max_lin_iters,
+                              callback=_monitor)
         except _InexactNewtonConverged as e:
             d = e.d
 
-        res = Fk + Jk @ d
-        return np.asarray(d), float(np.linalg.norm(res))
+        d = np.asarray(d)
+        res_norm = float(np.linalg.norm(Fk + Jk @ d))
+        # Fallback: if MINRES did not meet the inexact Newton condition
+        # ||F + J d|| ≤ η_k ||F|| within max_lin_iters, drop to a direct
+        # symmetric-indefinite solve. Mirrors Algorithm 1's requirement that
+        # the computed direction satisfy the inexactness tolerance.
+        if eta_k > 0 and res_norm > eta_k * F_norm:
+            d = dense_solve(Jk, -Fk, assume_a='sym', check_finite=False)
+            res_norm = float(np.linalg.norm(Fk + Jk @ d))
+        return d, res_norm
 
     raise ValueError(f"Unknown solver option: {solver}")
 
@@ -280,9 +291,8 @@ def selfscaling_solve(
     eta: float = 0.0,
     eta_scale: float = 1.0,
     eta_fn: Optional[Callable[[int, float], float]] = None,
-    c_backtrack: float = 0.5,
-    gamma1: float = 0.5,
-    gamma2: float = 0.5,
+    c_backtrack: float = 0.49,
+    gamma: float = 0.5,
     tol: float = 1e-8,
     max_iters: int = 200,
     max_lin_iters: int = 200,
@@ -297,9 +307,10 @@ def selfscaling_solve(
         tau0: initial τ > 0. Default 1.0.
         eta: inexactness parameter in [0, 1). Default 0 (exact Newton step).
         eta_scale: if in (0,1), uses η_k = η * (eta_scale ** k). Default 1 (no decay).
-        c_backtrack: Armijo-like parameter c ∈ (0,1) for the merit function rule.
-        gamma1: backtracking factor for ᾱ safeguarding τ (0<γ1<1). Default 0.5.
-        gamma2: backtracking factor for α (0<γ2<1). Default 0.5.
+        c_backtrack: Armijo-like parameter μ ∈ (0, 1/2) for the merit rule (Remark 3.3).
+                     Iter count at large Z / far-from-optimal τ₀ is a strong function of μ;
+                     default chosen near the upper end of the admissible interval. Default 0.49.
+        gamma: Armijo backtracking factor γ ∈ (0, 1). Default 0.5.
         tol: stopping tolerance on ρ(z) = ||F(z)||. Default 1e-8.
         max_iters: max outer iterations. Default 200.
         max_lin_iters: max inner linear iterations. Default 200.
@@ -324,8 +335,10 @@ def selfscaling_solve(
         raise ValueError("eta_scale must be positive.")
     if not (tau0 > 0):
         raise ValueError("Initial tau0 must be positive.")
-    if not (0 < c_backtrack < 1 and 0 < gamma1 < 1 and 0 < gamma2 < 1):
-        raise ValueError("Backtracking parameters c, gamma1, gamma2 must lie in (0,1).")
+    if not (0 < c_backtrack < 0.5):
+        raise ValueError("c_backtrack (Armijo μ) must lie in (0, 1/2); see Remark 3.3.")
+    if not (0 < gamma < 1):
+        raise ValueError("gamma must lie in (0, 1).")
 
     model = Model(A=np.asarray(A), b=np.asarray(b), c=np.asarray(c), mu=np.asarray(mu), lam=float(lam))
     m = model.A.shape[0]
@@ -337,7 +350,23 @@ def selfscaling_solve(
     # Initial merit value & level-set radius β
     F0 = model.F(y, tau)
     rho = float(np.linalg.norm(F0))
-    beta = 1.5 * rho  # any β > ρ(z0) works; mild cushion
+    beta = 1.5 * rho  # any β > ρ(z⁰) works; mild cushion
+
+    # Algorithm 1, Step 1: precompute tau_min_hat via the Lambert-W bound of
+    # Lemma 3.1(ii). tau_floor = 0.5 * tau_min_hat is the safeguard Step 3 uses
+    # to keep tau_k + alpha_bar * dtau_k uniformly bounded away from 0.
+    # When A_max/lam is large, the exponential in zeta can underflow to 0 in
+    # float64, yielding a computed tau_min_hat of 0. In that regime any small
+    # positive value is a valid lower estimate; we fall back to _TAU_FLOOR_MIN.
+    from .utils import lambert_w_bounds
+    _TAU_FLOOR_MIN = 1e-16
+    tau_min_hat, _ = lambert_w_bounds(model.A, model.b, model.c, model.mu,
+                                      model.lam, beta)
+    tau_floor = max(0.5 * tau_min_hat, _TAU_FLOOR_MIN)
+    if tau < tau_floor:
+        raise ValueError(
+            f"tau0={tau:.3e} < tau_floor={tau_floor:.3e}; Algorithm 1 "
+            "requires z0 in lev_rho(beta).")
 
     # History container
     history: Dict[str, List] = {"iter": [], "tau": [], "alpha": [], "x": [], "y": [], "rho": [],
@@ -345,7 +374,7 @@ def selfscaling_solve(
 
     if verbose:
         print("\n=== Self-Scaling Algorithm on F(y, τ) = 0 ===")
-        print(f"eta={eta} (scale={eta_scale}), c={c_backtrack}, gamma1={gamma1}, gamma2={gamma2}")
+        print(f"eta={eta} (scale={eta_scale}), c={c_backtrack}, gamma={gamma}")
         print(f"init: rho={rho:.6e}, tau={tau0:.6e}")
         print("Iter |   rho(F)        |    ϕ_d(y,τ)       ψ_d(y)         ψ_p(x)        |  α (step)   |  τ ")
         print("-----+-----------------+------------------------------------------------+-------------+----")
@@ -384,41 +413,27 @@ def selfscaling_solve(
 
         ############### Step 3: safeguard τ via ᾱ backtracking if dtau < 0 ###############
 
-        if dtau >= 0:
+        # Keep tau_k + alpha_bar * dtau_k >= 0.5 * tau_min_hat > 0 (Algorithm 1).
+        if tau + dtau >= tau_floor:
             alpha_bar = 1.0
         else:
-            alpha_bar = 1.0
-            # backtrack on γ1 until: tau + alpha_bar*dtau > 0 and ρ(z + ᾱ d) < ρ(z)
-            for _ in range(60):
-                tau_trial = tau + alpha_bar * dtau
-                if tau_trial <= 0:
-                    alpha_bar *= gamma1
-                    continue
-                F_trial = model.F(y + alpha_bar * dy, tau_trial)
-                rho_trial = float(np.linalg.norm(F_trial))
-                if rho_trial <= beta:
-                    break
-                alpha_bar *= gamma1
-            else:
-                raise RuntimeError("Failed to find alpha_bar satisfying level-set safeguard.")
+            # dtau < 0 here; else tau + dtau >= tau >= tau_floor would hold.
+            alpha_bar = float(np.clip((tau_floor - tau) / dtau, 0.0, 1.0))
 
         ############### Step 4: Armijo-like backtracking on merit function rho ###############
+        # Step 3's closed-form alpha_bar guarantees tau + a * dtau >= tau_floor > 0
+        # for all a in [0, alpha_bar], so no positivity guard is needed here.
         alpha = alpha_bar
-        F_curr = model.F(y, tau)
-        rho_curr = float(np.linalg.norm(F_curr))
-        rhs_coeff = c_backtrack * (eta_k - 1.0) * rho_curr  # negative number
+        rhs_coeff = c_backtrack * (eta_k - 1.0) * rho  # <= 0
         for _ in range(60):
             y_trial = y + alpha * dy
             tau_trial = tau + alpha * dtau
-            if tau_trial <= 0:
-                alpha *= gamma2
-                continue
             F_trial = model.F(y_trial, tau_trial)
             lhs = float(np.linalg.norm(F_trial))
-            rhs = rho_curr + alpha * rhs_coeff
+            rhs = rho + alpha * rhs_coeff
             if lhs <= rhs:
                 break
-            alpha *= gamma2
+            alpha *= gamma
         else:
             raise RuntimeError("Armijo backtracking failed to find acceptable step.")
 
