@@ -88,7 +88,7 @@ uv run python -m selfscaling.ueg --Z 5.0 --noise 1e-3 --seed 123
 │   └── figstyle.py      matplotlib style
 ├── scripts/             one script per Section 7 figure
 ├── data/                synthetic-UEG_testproblem.npz (committed; 819 KB)
-├── figures/             generated figures (gitignored)
+├── figures/             generated figures (committed; regenerable via `make figures`)
 ├── tests/test_smoke.py  fast correctness tests (<60 s)
 ├── pyproject.toml       project metadata and dependencies
 ├── uv.lock              transitively pinned resolution
