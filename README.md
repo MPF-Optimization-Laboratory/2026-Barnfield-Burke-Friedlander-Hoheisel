@@ -150,13 +150,13 @@ GitHub with a "Cite this repository" button). In BibTeX:
 
 ```bibtex
 @article{BarnfieldBurkeFriedlanderHoheisel2026,
-  author  = {Barnfield, Nick and Burke, James V. and Friedlander, Michael P. and Hoheisel, Tim},
+  author  = {Barnfield, Nicholas and Burke, James V. and Friedlander, Michael P. and Hoheisel, Tim},
   title   = {Self-scaling inexact {N}ewton methods for entropy-regularized least-squares problems},
   year    = {2026},
 }
 
 @software{BarnfieldBurkeFriedlanderHoheisel2026Code,
-  author  = {Barnfield, Nick and Burke, James V. and Friedlander, Michael P. and Hoheisel, Tim},
+  author  = {Barnfield, Nicholas and Burke, James V. and Friedlander, Michael P. and Hoheisel, Tim},
   title   = {Self-scaling inexact {N}ewton methods for entropy-regularized least squares ({S}ection 7 reproduction code)},
   year    = {2026},
   version = {1.0.0},
