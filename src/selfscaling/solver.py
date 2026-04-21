@@ -1,4 +1,4 @@
-# Yet to implement compatibility with zeros mu entries!!!!!!!
+# TODO: support zero entries in mu (currently rejected by softmax_mu / g_mu).
 
 """
 
@@ -49,6 +49,11 @@ import numpy as np
 from scipy.linalg import solve as dense_solve
 from scipy.sparse.linalg import minres
 
+
+# Floor for the τ safeguard when the Lambert-W bound underflows float64.
+_TAU_FLOOR_MIN = 1e-16
+# Cap on the inexactness parameter η_k (Algorithm 1 requires η_k < 1).
+_ETA_MAX = 1.0 - 1e-6
 
 
 # ============================
@@ -277,7 +282,7 @@ def compute_direction(
 
 
 # =====================================
-# Main solver (Algorithm 3.5)
+# Main solver (Algorithm 1)
 # =====================================
 
 def selfscaling_solve(
@@ -314,7 +319,7 @@ def selfscaling_solve(
         tol: stopping tolerance on ρ(z) = ||F(z)||. Default 1e-8.
         max_iters: max outer iterations. Default 200.
         max_lin_iters: max inner linear iterations. Default 200.
-        lin_solver: 'auto' | 'exact' | 'minres' |
+        lin_solver: 'auto' | 'exact' | 'minres'
         verbose: if True, prints iteration diagnostics.
 
     Returns:
@@ -358,8 +363,9 @@ def selfscaling_solve(
     # When A_max/lam is large, the exponential in zeta can underflow to 0 in
     # float64, yielding a computed tau_min_hat of 0. In that regime any small
     # positive value is a valid lower estimate; we fall back to _TAU_FLOOR_MIN.
+    # Local import: utils.py imports from solver.py, so a module-top import
+    # would create a circular dependency.
     from .utils import lambert_w_bounds
-    _TAU_FLOOR_MIN = 1e-16
     tau_min_hat, _ = lambert_w_bounds(model.A, model.b, model.c, model.mu,
                                       model.lam, beta)
     tau_floor = max(0.5 * tau_min_hat, _TAU_FLOOR_MIN)
@@ -380,7 +386,9 @@ def selfscaling_solve(
         print("-----+-----------------+------------------------------------------------+-------------+----")
 
     for k in range(max_iters):
-        # Save history
+        # Save history. eta_k / res_ratio are NaN placeholders here and get
+        # patched below once the Newton step runs; this keeps every history
+        # array the same length even when the loop exits at convergence.
         x_curr = model.x_from(y, tau)
         history["iter"].append(k)
         history["tau"].append(float(tau))
@@ -388,6 +396,8 @@ def selfscaling_solve(
         history["y"].append(y.copy())
         history["alpha"].append(float(0.0)) # no step taken
         history["rho"].append(float(rho))
+        history["eta_k"].append(float("nan"))
+        history["res_ratio"].append(float("nan"))
 
         ############### Step 2: Convergence check and Newton step ################
 
@@ -398,16 +408,16 @@ def selfscaling_solve(
 
         # Inexactness schedule
         if eta_fn is not None:
-            eta_k = float(min(eta_fn(k, rho), 0.999999))
+            eta_k = float(min(eta_fn(k, rho), _ETA_MAX))
         elif eta > 0:
-            eta_k = min(eta * (eta_scale ** k), 0.999999)
+            eta_k = min(eta * (eta_scale ** k), _ETA_MAX)
         else:
             eta_k = 0.0
 
         # Compute direction
         d, res_norm = compute_direction(model, y, tau, eta_k, max_lin_iters=max_lin_iters, solver=lin_solver)
-        history["eta_k"].append(float(eta_k))
-        history["res_ratio"].append(float(res_norm / rho) if rho > 0 else 0.0)
+        history["eta_k"][-1] = float(eta_k)
+        history["res_ratio"][-1] = float(res_norm / rho) if rho > 0 else 0.0
         dy = d[:m]
         dtau = float(d[m])
 
@@ -437,11 +447,10 @@ def selfscaling_solve(
         else:
             raise RuntimeError("Armijo backtracking failed to find acceptable step.")
 
-        # Accept step
-        y = y + alpha * dy
-        tau = tau + alpha * dtau
-        F_new = model.F(y, tau)
-        rho = float(np.linalg.norm(F_new))
+        # Accept step; reuse the last trial evaluation to avoid recomputing F.
+        y = y_trial
+        tau = tau_trial
+        rho = lhs
         history["alpha"][-1] = float(alpha)
 
         if verbose:
