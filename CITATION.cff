@@ -10,7 +10,7 @@ repository-code: "https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheis
 url: "https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheisel"
 authors:
   - family-names: Barnfield
-    given-names: Nick
+    given-names: Nicholas
     orcid: "https://orcid.org/0000-0000-0000-0000"
   - family-names: Burke
     given-names: James V.
@@ -34,7 +34,7 @@ preferred-citation:
   year: 2026
   authors:
     - family-names: Barnfield
-      given-names: Nick
+      given-names: Nicholas
     - family-names: Burke
       given-names: James V.
     - family-names: Friedlander
