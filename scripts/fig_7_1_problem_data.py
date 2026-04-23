@@ -59,24 +59,14 @@ ax1.set_title("(a)")
 loggrid(ax1)
 
 # Panel (b): prior q and ground truth x*
-ax2.semilogy(omegas, x_true, color="C0", label=r"Truth $x^\ast$ (Mermin)")
-ax2.semilogy(omegas, mu, color="C1", linestyle="--", label=r"Prior $q$ (RPA)")
+ax2.semilogy(omegas, x_true, color="C0", label=r"Truth $x^\ast$")
+ax2.semilogy(omegas, mu, color="C1", linestyle="--", label=r"Prior $q$")
 ax2.axhline(1e-16, color="0.4", linestyle=":", linewidth=0.8, label=r"Floor $10^{-16}$")
 ax2.set_xlabel(r"$\omega$")
 ax2.set_ylabel("Magnitude")
 ax2.set_title("(b)")
 ax2.legend(fontsize=7, loc="lower left")
 loggrid(ax2)
-
-# Inset: zoom on the plasmon peak
-axins = ax2.inset_axes([0.42, 0.54, 0.52, 0.40])
-mask = (omegas >= 0.0) & (omegas <= 1.8)
-axins.plot(omegas[mask], x_true[mask], color="C0")
-axins.plot(omegas[mask], mu[mask], color="C1", linestyle="--")
-axins.set_xlim(0.0, 1.8)
-axins.tick_params(labelsize=5.5)
-axins.yaxis.set_label_position("right")
-axins.yaxis.tick_right()
 
 fig.tight_layout()
 out_path = FIG_DIR / "problem_data.pdf"
