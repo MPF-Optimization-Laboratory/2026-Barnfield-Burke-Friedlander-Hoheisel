@@ -138,14 +138,16 @@ MERIT_YLIM = (1e-14, 1e5)
 
 
 def save_panel(fig, stem):
+    # No bbox_inches="tight": preserve the figsize so every panel PDF has
+    # identical outer dimensions, keeping the LaTeX 2x3 grid aligned.
     out = FIG_DIR / f"{stem}.pdf"
-    fig.savefig(out, bbox_inches="tight")
+    fig.savefig(out)
     plt.close(fig)
     print(f"Saved {out}")
 
 
 # === (a) Unsafeguarded max-exponent ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE)
+fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
 for Z in ROW1_Zs:
     hist = row1_classical[Z]["history"]
     arr = np.array(hist["full_step_max_exp_arg"], dtype=float)
@@ -165,7 +167,7 @@ loggrid(ax)
 save_panel(fig, "trajectory_a")
 
 # === (b) Classical dual Newton gradient norm ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE)
+fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
 for Z in ROW1_Zs:
     hist = row1_classical[Z]["history"]
     if hist["iter"]:
@@ -179,7 +181,7 @@ loggrid(ax)
 save_panel(fig, "trajectory_b")
 
 # === (c) Algorithm 1 merit (row 1) ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE)
+fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
 for Z in ROW1_Zs:
     ra = row1_alg1[Z]
     hist = ra["history"]
@@ -193,7 +195,7 @@ loggrid(ax)
 save_panel(fig, "trajectory_c")
 
 # === (d) Normalized spectral recovery ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE)
+fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
 ax.plot(omegas, x_base, "k--", linewidth=1.2)
 for Z in ROW2_Zs:
     r = row2_results[Z]
@@ -205,10 +207,11 @@ ax.set_ylabel(r"$x^\ast / Z$")
 truth_handle = mlines.Line2D([], [], color="k", linestyle="--",
                              linewidth=1.2, label=r"truth $x_{\rm base}$")
 ax.legend(handles=[truth_handle], fontsize=7, loc="upper right")
+loggrid(ax)
 save_panel(fig, "trajectory_d")
 
 # === (e) Scale trajectory tau_k ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE)
+fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
 for Z in ROW2_Zs:
     r = row2_results[Z]
     if not r["converged"]:
@@ -223,7 +226,7 @@ loggrid(ax)
 save_panel(fig, "trajectory_e")
 
 # === (f) Algorithm 1 merit (row 2) ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE)
+fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
 for Z in ROW2_Zs:
     r = row2_results[Z]
     if not r["converged"]:

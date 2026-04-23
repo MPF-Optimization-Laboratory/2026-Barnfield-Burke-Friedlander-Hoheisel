@@ -29,7 +29,14 @@ def setup():
     })
 
 
-def loggrid(ax):
-    """Add major and faint minor gridlines for log-scale axes."""
+def panelgrid(ax):
+    """Uniform major + faint-minor grid for publication panels.
+
+    Works for both linear and log axes — on a linear axis the minor-grid
+    call is a no-op because there are no minor ticks by default.
+    """
     ax.grid(True, which="major", linewidth=0.5, alpha=0.3)
     ax.grid(True, which="minor", linewidth=0.3, alpha=0.15)
+
+
+loggrid = panelgrid
