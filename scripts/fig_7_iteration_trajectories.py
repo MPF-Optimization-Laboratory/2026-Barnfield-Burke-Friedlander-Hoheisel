@@ -203,7 +203,7 @@ for Z in ROW2_Zs:
         continue
     ax.plot(omegas, r["x"] / Z, color=row2_colors[Z])
 ax.set_xlabel(r"$\omega$")
-ax.set_ylabel(r"$x^\ast / Z$")
+ax.set_ylabel(r"$\hat{x} / Z$")
 truth_handle = mlines.Line2D([], [], color="k", linestyle="--",
                              linewidth=1.2, label=r"truth $x_{\rm base}$")
 ax.legend(handles=[truth_handle], fontsize=7, loc="upper right")
