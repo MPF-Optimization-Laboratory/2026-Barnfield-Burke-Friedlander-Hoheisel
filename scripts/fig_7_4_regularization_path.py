@@ -4,8 +4,7 @@ Sweeps λ from 1e-1 down to 1e-8 for Z ∈ {1, 10, 100} on the UEG test
 problem. Plots the data-fit residual ‖Ax* − b‖₂ as a function of λ
 (decreasing left to right), illustrating the bias–regularization tradeoff.
 
-Saves both absolute (`regularization_path.pdf`) and relative
-(`regularization_path_rel.pdf`) forms. The relative version is the one
+Saves `regularization_path_rel.pdf` — the relative-residual form
 shown in the paper.
 """
 
@@ -96,21 +95,6 @@ for Z in Zs:
     for i, lam in enumerate(r["lambdas"]):
         print(f"  {lam:>12.2e} {r['residuals'][i]:>12.4e} {r['rho_finals'][i]:>12.4e} "
               f"{r['iters'][i]:>6} {r['taus'][i]:>12.4e} {str(r['converged'][i]):>5}")
-
-# --- Plot (absolute) ---
-fig, ax = plt.subplots(figsize=(0.7 * TEXTWIDTH, 2.0))
-for Z in Zs:
-    r = results[Z]
-    ax.loglog(r["lambdas"], r["residuals"], "-o", color=colors[Z], label=f"$Z = {Z}$")
-ax.invert_xaxis()
-ax.set_xlabel(r"$\lambda$")
-ax.set_ylabel(r"$\|Ax^\ast - b\|$")
-ax.legend()
-loggrid(ax)
-fig.tight_layout()
-out_path = FIG_DIR / "regularization_path.pdf"
-fig.savefig(out_path, bbox_inches="tight")
-print(f"\nSaved {out_path}")
 
 # --- Plot (normalized) ---
 fig, ax = plt.subplots(figsize=(0.7 * TEXTWIDTH, 2.0))
