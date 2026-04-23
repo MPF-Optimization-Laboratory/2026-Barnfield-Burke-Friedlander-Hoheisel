@@ -7,7 +7,7 @@ Companion code to Section 7 of
 > problems*, 2026.
 > arXiv: [`XXXX.XXXXX`](https://arxiv.org/abs/XXXX.XXXXX)  ·  DOI: `10.XXXX/XXXXXX`
 
-This repository reproduces the four numerical figures of Section 7 on the
+This repository reproduces the three numerical figures of Section 7 on the
 uniform-electron-gas (UEG) analytic-continuation test problem of Chuna et al.
 (2025). The solver is a self-scaling inexact Newton method applied to the
 dual optimality system F(y, τ) = 0 of an entropy-regularized least-squares
@@ -19,22 +19,23 @@ problem; see the paper for the algorithm and analysis.
 git clone https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheisel.git
 cd 2026-Barnfield-Burke-Friedlander-Hoheisel
 uv sync          # install pinned environment (Python 3.11)
-make figures     # regenerate all four figures into figures/
+make figures     # regenerate all figures into figures/
 ```
 
 Total wall-clock time: ~3 minutes on a 2023 laptop. No GPU required.
 
 ## Figure map
 
-Each figure corresponds to one script. Running `make figures` (or any
-individual script) produces a PDF in `figures/`.
+Figure 7.2 in the paper is a 2×3 composite: the top row studies overflow
+resilience (Z ∈ {2⁴, 2⁶, 2⁸, 2¹⁰}) and the bottom row studies scale recovery
+(Z ∈ {1, 10, 100}). Its six panels and two per-row legend strips are emitted
+as separate PDFs and assembled in the LaTeX source via `subcaption`.
 
-| Paper          | Script                                    | Output                          | Wall-clock |
-|----------------|-------------------------------------------|---------------------------------|------------|
-| Figure 7.1     | `scripts/fig_7_1_problem_data.py`         | `figures/problem_data.pdf`            | ~10 s      |
-| Figure 7.2     | `scripts/fig_7_2_overflow.py`             | `figures/overflow_sweep.pdf`          | ~30 s      |
-| Figure 7.3     | `scripts/fig_7_3_analytic_continuation.py`| `figures/analytic_continuation.pdf`   | ~20 s      |
-| Figure 7.4     | `scripts/fig_7_4_regularization_path.py`  | `figures/regularization_path_rel.pdf` | ~2 min     |
+| Paper          | Script                                    | Output                                        | Wall-clock |
+|----------------|-------------------------------------------|-----------------------------------------------|------------|
+| Figure 7.1     | `scripts/fig_7_1_problem_data.py`         | `figures/problem_data.pdf`                    | ~10 s      |
+| Figure 7.2     | `scripts/fig_7_iteration_trajectories.py` | `figures/trajectory_{a..f}.pdf`, `figures/trajectory_legend_row{1,2}.pdf` | ~45 s      |
+| Figure 7.3     | `scripts/fig_7_4_regularization_path.py`  | `figures/regularization_path_rel.pdf`         | ~2 min     |
 
 ## Requirements
 
@@ -65,8 +66,7 @@ make figures RUN=python
 
 ```bash
 uv run python scripts/fig_7_1_problem_data.py
-uv run python scripts/fig_7_2_overflow.py
-uv run python scripts/fig_7_3_analytic_continuation.py
+uv run python scripts/fig_7_iteration_trajectories.py
 uv run python scripts/fig_7_4_regularization_path.py
 ```
 

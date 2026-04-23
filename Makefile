@@ -18,8 +18,14 @@
 RUN ?= uv run python
 
 FIGURES := figures/problem_data.pdf \
-           figures/overflow_sweep.pdf \
-           figures/analytic_continuation.pdf \
+           figures/trajectory_a.pdf \
+           figures/trajectory_b.pdf \
+           figures/trajectory_c.pdf \
+           figures/trajectory_d.pdf \
+           figures/trajectory_e.pdf \
+           figures/trajectory_f.pdf \
+           figures/trajectory_legend_row1.pdf \
+           figures/trajectory_legend_row2.pdf \
            figures/regularization_path_rel.pdf
 
 .PHONY: all figures test clean lock sync help
@@ -40,11 +46,17 @@ figures: $(FIGURES)
 figures/problem_data.pdf: scripts/fig_7_1_problem_data.py
 	$(RUN) scripts/fig_7_1_problem_data.py
 
-figures/overflow_sweep.pdf: scripts/fig_7_2_overflow.py
-	$(RUN) scripts/fig_7_2_overflow.py
+TRAJECTORY_PANELS := figures/trajectory_a.pdf \
+                     figures/trajectory_b.pdf \
+                     figures/trajectory_c.pdf \
+                     figures/trajectory_d.pdf \
+                     figures/trajectory_e.pdf \
+                     figures/trajectory_f.pdf \
+                     figures/trajectory_legend_row1.pdf \
+                     figures/trajectory_legend_row2.pdf
 
-figures/analytic_continuation.pdf: scripts/fig_7_3_analytic_continuation.py
-	$(RUN) scripts/fig_7_3_analytic_continuation.py
+$(TRAJECTORY_PANELS): scripts/fig_7_iteration_trajectories.py
+	$(RUN) scripts/fig_7_iteration_trajectories.py
 
 figures/regularization_path_rel.pdf: scripts/fig_7_4_regularization_path.py
 	$(RUN) scripts/fig_7_4_regularization_path.py

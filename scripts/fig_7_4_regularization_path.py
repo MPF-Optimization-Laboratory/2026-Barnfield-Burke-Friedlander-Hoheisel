@@ -98,7 +98,7 @@ for Z in Zs:
               f"{r['iters'][i]:>6} {r['taus'][i]:>12.4e} {str(r['converged'][i]):>5}")
 
 # --- Plot (absolute) ---
-fig, ax = plt.subplots(figsize=(0.65 * TEXTWIDTH, 2.8))
+fig, ax = plt.subplots(figsize=(0.7 * TEXTWIDTH, 2.0))
 for Z in Zs:
     r = results[Z]
     ax.loglog(r["lambdas"], r["residuals"], "-o", color=colors[Z], label=f"$Z = {Z}$")
@@ -113,7 +113,7 @@ fig.savefig(out_path, bbox_inches="tight")
 print(f"\nSaved {out_path}")
 
 # --- Plot (normalized) ---
-fig, ax = plt.subplots(figsize=(0.65 * TEXTWIDTH, 2.8))
+fig, ax = plt.subplots(figsize=(0.7 * TEXTWIDTH, 2.0))
 for Z in Zs:
     r = results[Z]
     ax.loglog(r["lambdas"], r["rel_residuals"], "-o", color=colors[Z], label=f"$Z = {Z}$")
