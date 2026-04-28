@@ -49,17 +49,21 @@ LAM = 1e-5
 MU_FLOOR = 1e-16
 OVERFLOW_LOG_THRESHOLD = np.log(np.finfo(np.float64).max)  # ~709.78
 
+# --- Unified Algorithm 1 settings (ε, K_max) = (1e-8, 300) ---
+ALG1_TOL = 1e-8
+ALG1_MAX_ITERS = 300
+
 # --- Row 1 (overflow) config ---
 ROW1_Zs = [2**4, 2**6, 2**8, 2**10]
-ROW1_TOL = 1e-8
+ROW1_TOL = ALG1_TOL
 ROW1_MAX_CLASSICAL = 50
-ROW1_MAX_ALG1 = 200
+ROW1_MAX_ALG1 = ALG1_MAX_ITERS
 ROW1_TAU0 = 1.0
 
 # --- Row 2 (scale recovery) config ---
 ROW2_Zs = [1, 10, 100]
-ROW2_TOL = 1e-10
-ROW2_MAX_ITERS = 300
+ROW2_TOL = ALG1_TOL
+ROW2_MAX_ITERS = ALG1_MAX_ITERS
 ROW2_TAU0 = 1.0
 
 
