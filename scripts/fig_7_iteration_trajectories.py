@@ -259,7 +259,7 @@ row1_handles = [
 ]
 row2_handles = [
     mlines.Line2D([], [], color=row2_colors[Z], marker="o", markersize=3,
-                  label=fr"$Z = {Z}$")
+                  label=fr"$Z = 10^{{{int(np.log10(Z))}}}$")
     for Z in ROW2_Zs
 ]
 save_legend_strip(row1_handles, "trajectory_legend_row1")

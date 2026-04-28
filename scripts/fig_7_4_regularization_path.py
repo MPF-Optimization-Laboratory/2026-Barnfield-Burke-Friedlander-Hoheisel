@@ -100,7 +100,8 @@ for Z in Zs:
 fig, ax = plt.subplots(figsize=(0.7 * TEXTWIDTH, 2.0))
 for Z in Zs:
     r = results[Z]
-    ax.loglog(r["lambdas"], r["rel_residuals"], "-o", color=colors[Z], label=f"$Z = {Z}$")
+    ax.loglog(r["lambdas"], r["rel_residuals"], "-o", color=colors[Z],
+              label=fr"$Z = 10^{{{int(np.log10(Z))}}}$")
 ax.invert_xaxis()
 ax.set_xlabel(r"$\lambda$")
 ax.set_ylabel(r"$\|Ax^\ast - b\| / \|b\|$")
