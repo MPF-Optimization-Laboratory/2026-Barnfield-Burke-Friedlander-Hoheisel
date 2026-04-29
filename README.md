@@ -15,7 +15,7 @@ least-squares problem; see the paper for the algorithm and analysis.
 ## Quick reproduction
 
 ```bash
-git clone https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheisel.git
+git clone https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedlander-Hoheisel.git
 cd 2026-Barnfield-Burke-Friedlander-Hoheisel
 uv sync          # install pinned environment (Python 3.11)
 make figures     # regenerate all figures into figures/
@@ -140,7 +140,7 @@ kernel derivation, see
 
 - **Zenodo DOI** (all versions): `10.5281/zenodo.XXXXXXX`  *(added at first release)*
 - **Software Heritage ID**: `swh:1:dir:XXXX...`                *(added after public release)*
-- **GitHub source**: <https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheisel>
+- **GitHub source**: <https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedlander-Hoheisel>
 
 ## Citation
 
@@ -160,7 +160,7 @@ GitHub with a "Cite this repository" button). In BibTeX:
   year    = {2026},
   version = {1.0.0},
   doi     = {10.5281/zenodo.XXXXXXX},
-  url     = {https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheisel},
+  url     = {https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedlander-Hoheisel},
 }
 ```
 

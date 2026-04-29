@@ -37,8 +37,8 @@ dependencies = [
 test = ["pytest>=7"]
 
 [project.urls]
-Homepage = "https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheisel"
-Repository = "https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheisel"
+Homepage = "https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedlander-Hoheisel"
+Repository = "https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedlander-Hoheisel"
 
 [build-system]
 requires = ["hatchling"]

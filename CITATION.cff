@@ -6,8 +6,8 @@ title: "A scale-shape dual Newton method for entropic least squares (Section 7 r
 version: 1.0.0
 date-released: "2026-04-20"
 license: MIT
-repository-code: "https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheisel"
-url: "https://github.com/mpf/2026-Barnfield-Burke-Friedlander-Hoheisel"
+repository-code: "https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedlander-Hoheisel"
+url: "https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedlander-Hoheisel"
 authors:
   - family-names: Barnfield
     given-names: Nicholas
