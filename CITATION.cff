@@ -5,8 +5,13 @@ title: "A scale-shape dual Newton method for entropic least squares (Section 7 r
 version: 1.0.0
 date-released: "2026-04-20"
 license: MIT
+doi: "10.5281/zenodo.19889724"
 repository-code: "https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedlander-Hoheisel"
-url: "https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedlander-Hoheisel"
+url: "https://doi.org/10.5281/zenodo.19889724"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.19889724"
+    description: "Zenodo archival DOI for v1.0.0"
 authors:
   - family-names: Barnfield
     given-names: Nicholas

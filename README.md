@@ -1,5 +1,7 @@
 # Scale-shape dual Newton — Section 7 reproduction code
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19889724.svg)](https://doi.org/10.5281/zenodo.19889724)
+
 Companion code to Section 7 of
 
 > N. Barnfield, J. V. Burke, M. P. Friedlander, T. Hoheisel,
@@ -138,7 +140,7 @@ kernel derivation, see
 
 ## Archival references
 
-- **Zenodo DOI** (all versions): `10.5281/zenodo.XXXXXXX`  *(added at first release)*
+- **Zenodo DOI**: [`10.5281/zenodo.19889724`](https://doi.org/10.5281/zenodo.19889724)
 - **Software Heritage ID**: `swh:1:dir:XXXX...`                *(added after public release)*
 - **GitHub source**: <https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedlander-Hoheisel>
 
@@ -159,7 +161,7 @@ GitHub with a "Cite this repository" button). In BibTeX:
   title   = {A scale-shape dual {N}ewton method for entropic least squares ({S}ection 7 reproduction code)},
   year    = {2026},
   version = {1.0.0},
-  doi     = {10.5281/zenodo.XXXXXXX},
+  doi     = {10.5281/zenodo.19889724},
   url     = {https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedlander-Hoheisel},
 }
 ```
