@@ -1,5 +1,4 @@
 # Citation metadata — see https://citation-file-format.github.io/
-# ORCID IDs are placeholders (0000-0000-0000-0000); replace before public release.
 cff-version: 1.2.0
 message: "If you use this software, please cite both the software (this file) and the paper (preferred-citation)."
 title: "A scale-shape dual Newton method for entropic least squares (Section 7 reproduction code)"
@@ -11,17 +10,21 @@ url: "https://github.com/MPF-Optimization-Laboratory/2026-Barnfield-Burke-Friedl
 authors:
   - family-names: Barnfield
     given-names: Nicholas
-    orcid: "https://orcid.org/0000-0000-0000-0000"
+    orcid: "https://orcid.org/0009-0003-9895-8347"
+    affiliation: Harvard University
   - family-names: Burke
     given-names: James V.
-    orcid: "https://orcid.org/0000-0000-0000-0000"
+    orcid: "https://orcid.org/0000-0002-0215-7306"
+    affiliation: University of Washington
   - family-names: Friedlander
     given-names: Michael P.
-    orcid: "https://orcid.org/0000-0000-0000-0000"
+    orcid: "https://orcid.org/0000-0003-0222-5222"
+    affiliation: University of British Columbia
     email: mpf@cs.ubc.ca
   - family-names: Hoheisel
     given-names: Tim
-    orcid: "https://orcid.org/0000-0000-0000-0000"
+    orcid: "https://orcid.org/0000-0002-0782-6302"
+    affiliation: McGill University
 keywords:
   - entropy regularization
   - Newton methods
