@@ -73,5 +73,5 @@ lock:
 
 clean:
 	rm -f figures/*.pdf
-	rm -rf src/selfscaling/__pycache__ scripts/__pycache__ tests/__pycache__
+	rm -rf src/scaleshape/__pycache__ scripts/__pycache__ tests/__pycache__
 	rm -rf .pytest_cache

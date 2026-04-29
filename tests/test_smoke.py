@@ -1,4 +1,4 @@
-"""Smoke tests for the self-scaling solver.
+"""Smoke tests for the scale-shape solver.
 
 These run in under a minute on modest hardware and verify:
 
@@ -10,18 +10,18 @@ These run in under a minute on modest hardware and verify:
 import numpy as np
 import pytest
 
-from selfscaling import (
+from scaleshape import (
     generate_ueg_problem,
     make_random_problem,
     naive_dual_newton,
-    selfscaling_solve,
+    scaleshape_solve,
 )
 
 
 def test_solver_converges_on_random_problem():
     """Solver converges on a small random instance."""
     A, b, c, mu = make_random_problem(m=20, n=50, seed=0)
-    result = selfscaling_solve(A, b, c, mu, lam=1e-3, tau0=1.0,
+    result = scaleshape_solve(A, b, c, mu, lam=1e-3, tau0=1.0,
                                tol=1e-10, max_iters=100, verbose=False)
     assert result["rho"] < 1e-8, f"rho={result['rho']:.2e}"
     assert np.isfinite(result["tau"]) and result["tau"] > 0
@@ -38,7 +38,7 @@ def test_tau_recovery_on_ueg_Z10():
     mu = mu / mu.sum()
     c = np.zeros(A.shape[1])
 
-    result = selfscaling_solve(A, b, c, mu, lam=1e-5, tau0=1.0,
+    result = scaleshape_solve(A, b, c, mu, lam=1e-5, tau0=1.0,
                                tol=1e-10, max_iters=300, verbose=False)
     assert result["rho"] < 1e-9
     assert abs(result["tau"] - 10.0) / 10.0 < 1e-2, \

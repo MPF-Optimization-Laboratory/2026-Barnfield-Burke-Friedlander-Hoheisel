@@ -314,6 +314,30 @@ wheels = [
 ]
 
 [[package]]
+name = "scaleshape"
+version = "1.0.0"
+source = { editable = "." }
+dependencies = [
+    { name = "matplotlib" },
+    { name = "numpy" },
+    { name = "scipy" },
+]
+
+[package.optional-dependencies]
+test = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "matplotlib", specifier = ">=3.8,<4" },
+    { name = "numpy", specifier = ">=1.26,<3" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=7" },
+    { name = "scipy", specifier = ">=1.11,<2" },
+]
+provides-extras = ["test"]
+
+[[package]]
 name = "scipy"
 version = "1.17.1"
 source = { registry = "https://pypi.org/simple" }
@@ -343,30 +367,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/a2/84/dc08d77fbf3d87d3ee27f6a0c6dcce1de5829a64f2eae85a0ecc1f0daa73/scipy-1.17.1-cp312-cp312-win_amd64.whl", hash = "sha256:41b71f4a3a4cab9d366cd9065b288efc4d4f3c0b37a91a8e0947fb5bd7f31d87", size = 36549682, upload-time = "2026-02-23T00:19:07.67Z" },
     { url = "https://files.pythonhosted.org/packages/bc/98/fe9ae9ffb3b54b62559f52dedaebe204b408db8109a8c66fdd04869e6424/scipy-1.17.1-cp312-cp312-win_arm64.whl", hash = "sha256:f4115102802df98b2b0db3cce5cb9b92572633a1197c77b7553e5203f284a5b3", size = 24547340, upload-time = "2026-02-23T00:19:12.024Z" },
 ]
-
-[[package]]
-name = "selfscaling"
-version = "1.0.0"
-source = { editable = "." }
-dependencies = [
-    { name = "matplotlib" },
-    { name = "numpy" },
-    { name = "scipy" },
-]
-
-[package.optional-dependencies]
-test = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "matplotlib", specifier = ">=3.8,<4" },
-    { name = "numpy", specifier = ">=1.26,<3" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=7" },
-    { name = "scipy", specifier = ">=1.11,<2" },
-]
-provides-extras = ["test"]
 
 [[package]]
 name = "six"

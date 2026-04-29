@@ -2,7 +2,7 @@
 
 Usage::
 
-    from selfscaling.figstyle import setup, loggrid, TEXTWIDTH
+    from scaleshape.figstyle import setup, loggrid, TEXTWIDTH
     setup()
 """
 

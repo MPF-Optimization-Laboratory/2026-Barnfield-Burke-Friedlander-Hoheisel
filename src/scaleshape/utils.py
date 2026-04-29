@@ -11,13 +11,13 @@ import numpy as np
 from numpy.linalg import norm
 from scipy.special import lambertw
 
-from .solver import Model, selfscaling_solve  # re-exported for convenience
+from .solver import Model, scaleshape_solve  # re-exported for convenience
 
 __all__ = [
     "naive_dual_newton",
     "lambert_w_bounds",
     "make_random_problem",
-    "selfscaling_solve",
+    "scaleshape_solve",
     "Model",
 ]
 

@@ -16,8 +16,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from selfscaling import generate_ueg_problem, selfscaling_solve
-from selfscaling.figstyle import setup as figsetup, loggrid, TEXTWIDTH
+from scaleshape import generate_ueg_problem, scaleshape_solve
+from scaleshape.figstyle import setup as figsetup, loggrid, TEXTWIDTH
 
 figsetup()
 
@@ -63,7 +63,7 @@ for Z in Zs:
     converged_flags = []
 
     for lam in LAMBDAS:
-        res = selfscaling_solve(
+        res = scaleshape_solve(
             A, b, c, mu_floor, lam=lam, tau0=TAU0,
             tol=TOL, max_iters=MAX_ITERS, verbose=False,
         )

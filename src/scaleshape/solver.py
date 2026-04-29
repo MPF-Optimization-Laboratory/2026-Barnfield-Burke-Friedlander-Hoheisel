@@ -2,9 +2,9 @@
 
 """
 
-########## To run the solver, call `selfscaling_solve(A, b, c, mu, lam, ...)`. ########
+########## To run the solver, call `scaleshape_solve(A, b, c, mu, lam, ...)`. ########
 
-Details of the Self-Scaling algorithm for Entropy-regularized least squares
+Details of the Scale-Shape algorithm for Entropy-regularized least squares
 
 Problem setup:
   Primal objective:
@@ -30,7 +30,7 @@ Problem setup:
              S(y) = diag(x) - x x^T,
              x = softmax_μ(A^T y - c) ∈ Δ_n.
 
- Self-Scaling algorithm:
+ Scale-Shape algorithm:
   - Find direction d_k = [Δy_k; Δτ_k] such that ||F(z_k) + J(z_k) d_k|| ≤ η_k ||F(z_k)||,
     with η_k ∈ [0, η̄).
   - Safeguard τ positivity & level set constraint via ᾱ backtracking with factor γ1.
@@ -285,7 +285,7 @@ def compute_direction(
 # Main solver (Algorithm 1)
 # =====================================
 
-def selfscaling_solve(
+def scaleshape_solve(
     A: np.ndarray,
     b: np.ndarray,
     c: np.ndarray,
@@ -304,7 +304,7 @@ def selfscaling_solve(
     lin_solver: str = "auto",
     verbose: bool = True,
 ) -> Dict[str, object]:
-    """Run Self-Scaling Algorithm.
+    """Run Scale-Shape Algorithm.
 
     Args:
         A, b, c, mu, lam: problem data; see class `Model`. Default λ=1e-4.
@@ -379,7 +379,7 @@ def selfscaling_solve(
                                     "eta_k": [], "res_ratio": []}
 
     if verbose:
-        print("\n=== Self-Scaling Algorithm on F(y, τ) = 0 ===")
+        print("\n=== Scale-Shape Algorithm on F(y, τ) = 0 ===")
         print(f"eta={eta} (scale={eta_scale}), c={c_backtrack}, gamma={gamma}")
         print(f"init: rho={rho:.6e}, tau={tau0:.6e}")
         print("Iter |   rho(F)        |    ϕ_d(y,τ)       ψ_d(y)         ψ_p(x)        |  α (step)   |  τ ")
@@ -493,11 +493,11 @@ def plot_history(history: Dict[str, List], keys: Iterable[str] = ("rho", "tau"))
     """Quick plot of selected scalar sequences in `history` vs iteration.
 
     Usage:
-        out = selfscaling_solve(..., verbose=False)
+        out = scaleshape_solve(..., verbose=False)
         plot_history(out["history"], keys=("rho", "tau"))
 
     Args:
-        history: dict returned under result["history"] by `selfscaling_solve`.
+        history: dict returned under result["history"] by `scaleshape_solve`.
         keys: which scalar sequences to plot (each must be in `history`).
     """
     import matplotlib.pyplot as plt

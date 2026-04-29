@@ -1,17 +1,16 @@
-# Self-scaling Newton — Section 7 reproduction code
+# Scale-shape dual Newton — Section 7 reproduction code
 
 Companion code to Section 7 of
 
 > N. Barnfield, J. V. Burke, M. P. Friedlander, T. Hoheisel,
-> *Self-scaling inexact Newton methods for entropy-regularized least-squares
-> problems*, 2026.
+> *A scale-shape dual Newton method for entropic least squares*, 2026.
 > arXiv: [`XXXX.XXXXX`](https://arxiv.org/abs/XXXX.XXXXX)  ·  DOI: `10.XXXX/XXXXXX`
 
 This repository reproduces the three numerical figures of Section 7 on the
 uniform-electron-gas (UEG) analytic-continuation test problem of Chuna et al.
-(2025). The solver is a self-scaling inexact Newton method applied to the
-dual optimality system F(y, τ) = 0 of an entropy-regularized least-squares
-problem; see the paper for the algorithm and analysis.
+(2025). The solver is a damped inexact Newton method on the scale-shape dual,
+applied to the optimality system F(y, τ) = 0 of an entropy-regularized
+least-squares problem; see the paper for the algorithm and analysis.
 
 ## Quick reproduction
 
@@ -47,7 +46,7 @@ as separate PDFs and assembled in the LaTeX source via `subcaption`.
   `apt-get install texlive-latex-base texlive-latex-recommended
   texlive-fonts-recommended dvipng cm-super`. On macOS: MacTeX or BasicTeX.
   To regenerate figures **without** a LaTeX installation, comment out the
-  `text.usetex` line in `src/selfscaling/figstyle.py`.
+  `text.usetex` line in `src/scaleshape/figstyle.py`.
 - ~2 GB RAM; runs single-threaded
 
 ## Installation (alternatives)
@@ -74,15 +73,15 @@ To generate the UEG test problem at a custom scale and save it to
 `data/ueg_problem.npz`:
 
 ```bash
-uv run python -m selfscaling.ueg --Z 5.0 --noise 1e-3 --seed 123
+uv run python -m scaleshape.ueg --Z 5.0 --noise 1e-3 --seed 123
 ```
 
 ## Repository layout
 
 ```
 .
-├── src/selfscaling/     package: solver, UEG problem generator, utilities
-│   ├── solver.py        core algorithm (selfscaling_solve, Model)
+├── src/scaleshape/     package: solver, UEG problem generator, utilities
+│   ├── solver.py        core algorithm (scaleshape_solve, Model)
 │   ├── ueg.py           generate_ueg_problem + CLI
 │   ├── utils.py         naive_dual_newton, lambert_w_bounds
 │   └── figstyle.py      matplotlib style
@@ -112,7 +111,7 @@ the UEG analytic-continuation experiment:
 | `omegas`    | Frequency grid (n = 500 points)                                   |
 
 The kernel A is reconstructed on the fly from `taus` and `omegas` (see
-`build_kernel` in `src/selfscaling/ueg.py`), which avoids carrying the
+`build_kernel` in `src/scaleshape/ueg.py`), which avoids carrying the
 201×500 matrix in the base data file.
 
 The base data was produced by T. Chuna. For physics background and the
@@ -151,13 +150,13 @@ GitHub with a "Cite this repository" button). In BibTeX:
 ```bibtex
 @article{BarnfieldBurkeFriedlanderHoheisel2026,
   author  = {Barnfield, Nicholas and Burke, James V. and Friedlander, Michael P. and Hoheisel, Tim},
-  title   = {Self-scaling inexact {N}ewton methods for entropy-regularized least-squares problems},
+  title   = {A scale-shape dual {N}ewton method for entropic least squares},
   year    = {2026},
 }
 
 @software{BarnfieldBurkeFriedlanderHoheisel2026Code,
   author  = {Barnfield, Nicholas and Burke, James V. and Friedlander, Michael P. and Hoheisel, Tim},
-  title   = {Self-scaling inexact {N}ewton methods for entropy-regularized least squares ({S}ection 7 reproduction code)},
+  title   = {A scale-shape dual {N}ewton method for entropic least squares ({S}ection 7 reproduction code)},
   year    = {2026},
   version = {1.0.0},
   doi     = {10.5281/zenodo.XXXXXXX},

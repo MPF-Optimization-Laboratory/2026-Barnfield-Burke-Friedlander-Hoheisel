@@ -1,5 +1,5 @@
 {
-  "title": "Self-scaling inexact Newton methods for entropy-regularized least squares (Section 7 reproduction code)",
+  "title": "A scale-shape dual Newton method for entropic least squares (Section 7 reproduction code)",
   "description": "Companion code to Section 7 of Barnfield, Burke, Friedlander, Hoheisel (2026). Reproduces the four numerical figures for the uniform-electron-gas analytic-continuation experiment.",
   "upload_type": "software",
   "license": "mit-license",

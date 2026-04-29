@@ -29,8 +29,8 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import matplotlib.transforms as mtransforms
 
-from selfscaling import generate_ueg_problem, naive_dual_newton, selfscaling_solve
-from selfscaling.figstyle import setup as figsetup, loggrid, TEXTWIDTH
+from scaleshape import generate_ueg_problem, naive_dual_newton, scaleshape_solve
+from scaleshape.figstyle import setup as figsetup, loggrid, TEXTWIDTH
 
 figsetup()
 
@@ -95,7 +95,7 @@ for Z in ROW1_Zs:
         A, b_Z, c, mu_floor, LAM,
         max_iters=ROW1_MAX_CLASSICAL, tol=ROW1_TOL,
     )
-    row1_alg1[Z] = selfscaling_solve(
+    row1_alg1[Z] = scaleshape_solve(
         A, b_Z, c, mu_floor, lam=LAM, tau0=ROW1_TAU0,
         tol=ROW1_TOL, max_iters=ROW1_MAX_ALG1, verbose=False,
     )
@@ -108,7 +108,7 @@ for Z in ROW2_Zs:
                                 n_samples=N_SAMPLES, seed=42 + Z)
     b_Z = prob["b"]
     c = np.zeros(n)
-    res = selfscaling_solve(
+    res = scaleshape_solve(
         prob["A"], b_Z, c, mu_floor,
         lam=LAM, tau0=ROW2_TAU0, tol=ROW2_TOL,
         max_iters=ROW2_MAX_ITERS, verbose=False,

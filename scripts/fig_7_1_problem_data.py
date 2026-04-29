@@ -13,8 +13,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from selfscaling import generate_ueg_problem
-from selfscaling.figstyle import setup as figsetup, loggrid, TEXTWIDTH
+from scaleshape import generate_ueg_problem
+from scaleshape.figstyle import setup as figsetup, loggrid, TEXTWIDTH
 
 figsetup()
 

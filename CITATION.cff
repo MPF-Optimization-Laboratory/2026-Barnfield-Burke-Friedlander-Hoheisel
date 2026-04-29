@@ -2,7 +2,7 @@
 # ORCID IDs are placeholders (0000-0000-0000-0000); replace before public release.
 cff-version: 1.2.0
 message: "If you use this software, please cite both the software (this file) and the paper (preferred-citation)."
-title: "Self-scaling inexact Newton methods for entropy-regularized least squares (Section 7 reproduction code)"
+title: "A scale-shape dual Newton method for entropic least squares (Section 7 reproduction code)"
 version: 1.0.0
 date-released: "2026-04-20"
 license: MIT
@@ -30,7 +30,7 @@ keywords:
   - reproducible research
 preferred-citation:
   type: article
-  title: "Self-scaling inexact Newton methods for entropy-regularized least-squares problems"
+  title: "A scale-shape dual Newton method for entropic least squares"
   year: 2026
   authors:
     - family-names: Barnfield

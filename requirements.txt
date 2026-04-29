@@ -9,10 +9,10 @@ fonttools==4.62.1
 kiwisolver==1.5.0
     # via matplotlib
 matplotlib==3.10.8
-    # via selfscaling (pyproject.toml)
+    # via scaleshape (pyproject.toml)
 numpy==2.4.4
     # via
-    #   selfscaling (pyproject.toml)
+    #   scaleshape (pyproject.toml)
     #   contourpy
     #   matplotlib
     #   scipy
@@ -25,6 +25,6 @@ pyparsing==3.3.2
 python-dateutil==2.9.0.post0
     # via matplotlib
 scipy==1.17.1
-    # via selfscaling (pyproject.toml)
+    # via scaleshape (pyproject.toml)
 six==1.17.0
     # via python-dateutil
