@@ -97,17 +97,19 @@ for Z in Zs:
               f"{r['iters'][i]:>6} {r['taus'][i]:>12.4e} {str(r['converged'][i]):>5}")
 
 # --- Plot (normalized) ---
-fig, ax = plt.subplots(figsize=(0.7 * TEXTWIDTH, 2.0))
+fig, ax = plt.subplots(figsize=(0.85 * TEXTWIDTH, 1.45),
+                       layout="constrained")
 for Z in Zs:
     r = results[Z]
     ax.loglog(r["lambdas"], r["rel_residuals"], "-o", color=colors[Z],
               label=fr"$Z = 10^{{{int(np.log10(Z))}}}$")
 ax.invert_xaxis()
-ax.set_xlabel(r"$\lambda$")
+ax.set_xlabel(r"$\lambda$", labelpad=2)
 ax.set_ylabel(r"$\|Ax^\ast - b\| / \|b\|$")
-ax.legend()
+ax.set_ylim(2e-4, 1.5e-2)
+ax.legend(loc="upper right", fontsize=7.5, handlelength=1.6,
+          handletextpad=0.4, borderaxespad=0.4)
 loggrid(ax)
-fig.tight_layout()
 out_path_rel = FIG_DIR / "regularization_path_rel.pdf"
-fig.savefig(out_path_rel, bbox_inches="tight")
+fig.savefig(out_path_rel)
 print(f"Saved {out_path_rel}")
