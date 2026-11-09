@@ -17,7 +17,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from scaleshape import generate_ueg_problem, scaleshape_solve
-from scaleshape.figstyle import setup as figsetup, loggrid, TEXTWIDTH
+from scaleshape.figstyle import (
+    setup as figsetup, TEXTWIDTH, SERIES_MARKERS, series, log_ticks,
+)
 
 figsetup()
 
@@ -35,8 +37,6 @@ TOL = 1e-8
 MAX_ITERS = 300
 TAU0 = 1.0
 MU_FLOOR = 1e-16
-
-colors = {1: "C0", 10: "C1", 100: "C2"}
 
 # --- Precompute floored prior (shared across Z) ---
 base = generate_ueg_problem(Z=1.0, noise_level=NOISE_LEVEL,
@@ -97,19 +97,23 @@ for Z in Zs:
               f"{r['iters'][i]:>6} {r['taus'][i]:>12.4e} {str(r['converged'][i]):>5}")
 
 # --- Plot (normalized) ---
-fig, ax = plt.subplots(figsize=(0.85 * TEXTWIDTH, 1.45),
-                       layout="constrained")
-for Z in Zs:
+# Drawn at the printed size (width = \linewidth). Each point is an
+# independent solve, so points are marked; hollow markers of distinct shape
+# keep the nearly coincident Z = 10, 100 curves apart.
+fig, ax = plt.subplots(figsize=(TEXTWIDTH, 1.45))
+for i, Z in enumerate(Zs):
     r = results[Z]
-    ax.loglog(r["lambdas"], r["rel_residuals"], "-o", color=colors[Z],
+    ax.loglog(r["lambdas"], r["rel_residuals"], **series(i),
+              marker=SERIES_MARKERS[i], markersize=3.5,
+              markerfacecolor="white", markeredgewidth=0.8,
               label=fr"$Z = 10^{{{int(np.log10(Z))}}}$")
 ax.invert_xaxis()
-ax.set_xlabel(r"$\lambda$", labelpad=2)
-ax.set_ylabel(r"$\|Ax^\ast - b\| / \|b\|$")
-ax.set_ylim(2e-4, 1.5e-2)
-ax.legend(loc="upper right", fontsize=7.5, handlelength=1.6,
-          handletextpad=0.4, borderaxespad=0.4)
-loggrid(ax)
+ax.set_xlabel(r"$\lambda$")
+ax.set_ylabel(r"$\|A\hat{x} - b\| / \|b\|$")
+ax.set_ylim(1e-4, 2e-2)   # plateaus (4-6e-4) inside the labelled decades
+log_ticks(ax, "x", every=1)
+log_ticks(ax, "y", every=1)
+ax.legend(loc="upper right")
 out_path_rel = FIG_DIR / "regularization_path_rel.pdf"
 fig.savefig(out_path_rel)
 print(f"Saved {out_path_rel}")

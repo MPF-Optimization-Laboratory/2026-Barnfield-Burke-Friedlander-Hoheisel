@@ -29,13 +29,18 @@ Total wall-clock time: ~3 minutes on a 2023 laptop. No GPU required.
 
 Figure 7.2 in the paper is a 2×3 composite: the top row studies overflow
 resilience (Z ∈ {2⁴, 2⁶, 2⁸, 2¹⁰}) and the bottom row studies scale recovery
-(Z ∈ {1, 10, 100}). Its six panels and two per-row legend strips are emitted
-as separate PDFs and assembled in the LaTeX source via `subcaption`.
+(Z ∈ {1, 10, 100}). The paper includes it as one PDF, `trajectory_grid.pdf`;
+the legacy script also emits the six panels and two per-row legend strips as
+separate PDFs for a `subcaption` layout.
+
+All figures are drawn at their printed width (5.125 in, the siamart text
+width) with the shared style in `src/scaleshape/figstyle.py`.
 
 | Paper          | Script                                    | Output                                        | Wall-clock |
 |----------------|-------------------------------------------|-----------------------------------------------|------------|
 | Figure 7.1     | `scripts/fig_7_1_problem_data.py`         | `figures/problem_data.pdf`                    | ~10 s      |
-| Figure 7.2     | `scripts/fig_7_iteration_trajectories.py` | `figures/trajectory_{a..f}.pdf`, `figures/trajectory_legend_row{1,2}.pdf` | ~45 s      |
+| Figure 7.2     | `scripts/fig_7_2_trajectories_grid.py`    | `figures/trajectory_grid.pdf`                 | ~45 s      |
+| (Figure 7.2, per panel) | `scripts/fig_7_iteration_trajectories.py` | `figures/trajectory_{a..f}.pdf`, `figures/trajectory_legend_row{1,2}.pdf` | ~45 s      |
 | Figure 7.3     | `scripts/fig_7_4_regularization_path.py`  | `figures/regularization_path_rel.pdf`         | ~2 min     |
 
 ## Requirements

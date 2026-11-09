@@ -1,8 +1,9 @@
 """Section 7 iteration-trajectory panels (six panels + two legend strips).
 
-Produces eight individual PDFs that LaTeX arranges into a 2 x 3 subcaption
-grid. Keeping labels (a)-(f) in LaTeX rather than burnt into the figure
-makes panel labels trivial to edit without regenerating.
+Legacy layout: the paper now includes the single-PDF version written by
+``fig_7_2_trajectories_grid.py`` (same data, same styling). This script
+produces eight individual PDFs that LaTeX can arrange into a 2 x 3
+subcaption grid, with labels (a)-(f) typeset in LaTeX.
 
 Row 1 (Overflow resilience, § 7.1; Z in {2^4, 2^6, 2^8, 2^10}):
   trajectory_a.pdf  unsafeguarded full-Newton-step max exponent
@@ -30,7 +31,10 @@ import matplotlib.lines as mlines
 import matplotlib.transforms as mtransforms
 
 from scaleshape import generate_ueg_problem, naive_dual_newton, scaleshape_solve
-from scaleshape.figstyle import setup as figsetup, loggrid, TEXTWIDTH
+from scaleshape.figstyle import (
+    setup as figsetup, TEXTWIDTH, ANNOT_FONTSIZE, LEVEL_STYLE,
+    series, log_ticks, endpoint_marker,
+)
 
 figsetup()
 
@@ -38,9 +42,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 FIG_DIR = REPO_ROOT / "figures"
 FIG_DIR.mkdir(exist_ok=True)
 
-# Each panel renders at ~1/3 of TEXTWIDTH (= 6 in) so LaTeX can include at
-# width = 0.32\linewidth without further scaling distortions.
-PANEL_SIZE = (TEXTWIDTH / 3.0, 1.5)
+# Each panel is drawn at its printed size in the subfigure layout,
+# width = 0.325\linewidth, so LaTeX includes it without scaling.
+PANEL_SIZE = (0.325 * TEXTWIDTH, 1.25)
 
 # --- Shared config ---
 NOISE_LEVEL = 1e-4
@@ -120,25 +124,14 @@ for Z in ROW2_Zs:
         history=res["history"],
     )
 
+# --- Presentation (shared with fig_7_2_trajectories_grid.py) ---
+row1_style = {Z: series(i) for i, Z in enumerate(ROW1_Zs)}
+row2_style = {Z: series(i) for i, Z in enumerate(ROW2_Zs)}
 
-# --- Termination marker styles (row 1) ---
-TERM_STYLE = {
-    "converged":      dict(marker="o", color="green", s=50, edgecolors="black", linewidths=0.8),
-    "armijo_fatal":   dict(marker="v", color="red",   s=50, edgecolors="black", linewidths=0.8),
-    "overflow_fatal": dict(marker="X", color="red",   s=50, edgecolors="black", linewidths=0.8),
-    "max_iters":      dict(marker="s", color="white", s=50, edgecolors="gray",  linewidths=1.2),
-}
-
-def endpoint_marker(ax, iters, values, status):
-    style = TERM_STYLE.get(status, TERM_STYLE["max_iters"])
-    ax.scatter([iters[-1]], [values[-1]], zorder=10, clip_on=False, **style)
-
-
-row1_colors = {16: "C0", 64: "C1", 256: "C2", 1024: "C3"}
-row2_colors = {1: "C0", 10: "C1", 100: "C2"}
-
-# Shared log-y extent on merit panels (c) and (f).
+# Shared log-y extent and stopping tolerance on convergence panels (b), (c), (f).
 MERIT_YLIM = (1e-14, 1e5)
+TRUTH_STYLE = dict(color="0.78", linewidth=2.0, solid_capstyle="butt")
+OMEGA_XLIM = (0.0, 1.5)   # x_base is < 1e-3 max(x_base) for omega > 1.37
 
 
 def save_panel(fig, stem):
@@ -151,7 +144,7 @@ def save_panel(fig, stem):
 
 
 # === (a) Unsafeguarded max-exponent ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
+fig, ax = plt.subplots(figsize=PANEL_SIZE)
 for Z in ROW1_Zs:
     hist = row1_classical[Z]["history"]
     arr = np.array(hist["full_step_max_exp_arg"], dtype=float)
@@ -159,97 +152,110 @@ for Z in ROW1_Zs:
         continue
     arr_clipped = np.maximum(arr, 1.0)
     iters = np.arange(arr.size)
-    ax.semilogy(iters, arr_clipped, marker="o", color=row1_colors[Z])
-    endpoint_marker(ax, iters, arr_clipped, row1_classical[Z]["status"])
-ax.axhline(OVERFLOW_LOG_THRESHOLD, color="k", linestyle="--", linewidth=0.8)
+    ax.semilogy(iters, arr_clipped, **row1_style[Z])
+    endpoint_marker(ax, iters[-1], arr_clipped[-1],
+                    row1_classical[Z]["status"], row1_style[Z]["color"])
+ax.axhline(OVERFLOW_LOG_THRESHOLD, color="black", linestyle=(0, (4, 2)),
+           linewidth=0.7, zorder=1)
 trans = mtransforms.blended_transform_factory(ax.transAxes, ax.transData)
-ax.text(0.97, OVERFLOW_LOG_THRESHOLD * 1.15, "overflow threshold",
-        transform=trans, ha="right", va="bottom", fontsize=7, color="0.3")
-ax.set_xlabel("Iteration $k$")
-ax.set_ylabel(r"$\max_i\, [A^\top\!(y+d) - \mathbf{1} - c]_i$")
-loggrid(ax)
+ax.text(0.98, OVERFLOW_LOG_THRESHOLD * 1.3, "overflow threshold",
+        transform=trans, ha="right", va="bottom", fontsize=ANNOT_FONTSIZE)
+ax.set_xlim(-1, 51)
+ax.set_ylim(1, 1e5)
+log_ticks(ax, every=2)
+ax.set_xlabel("iteration $k$")
+ax.set_ylabel(r"exponent $\xi_k$")
 save_panel(fig, "trajectory_a")
 
 # === (b) Classical dual Newton gradient norm ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
+fig, ax = plt.subplots(figsize=PANEL_SIZE)
 for Z in ROW1_Zs:
     hist = row1_classical[Z]["history"]
     if hist["iter"]:
-        ax.semilogy(hist["iter"], hist["grad_norm"], marker="o",
-                    color=row1_colors[Z])
-        endpoint_marker(ax, hist["iter"], hist["grad_norm"],
-                        row1_classical[Z]["status"])
-ax.set_xlabel("Iteration $k$")
+        ax.semilogy(hist["iter"], hist["grad_norm"], **row1_style[Z])
+        endpoint_marker(ax, hist["iter"][-1], hist["grad_norm"][-1],
+                        row1_classical[Z]["status"], row1_style[Z]["color"])
+ax.axhline(ROW1_TOL, **LEVEL_STYLE)
+ax.set_xlim(-1, 51)
+ax.set_ylim(*MERIT_YLIM)
+log_ticks(ax, every=6)
+ax.set_xlabel("iteration $k$")
 ax.set_ylabel(r"$\|\nabla \psi_d(y^k)\|$")
-loggrid(ax)
 save_panel(fig, "trajectory_b")
 
 # === (c) Algorithm 1 merit (row 1) ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
+fig, ax = plt.subplots(figsize=PANEL_SIZE)
 for Z in ROW1_Zs:
     ra = row1_alg1[Z]
     hist = ra["history"]
     status = "converged" if ra["rho"] < ROW1_TOL else "max_iters"
-    ax.semilogy(hist["iter"], hist["rho"], marker="o", color=row1_colors[Z])
-    endpoint_marker(ax, hist["iter"], hist["rho"], status)
-ax.set_xlabel("Iteration $k$")
-ax.set_ylabel(r"$\rho(z^k) = \|F(z^k)\|$")
+    ax.semilogy(hist["iter"], hist["rho"], **row1_style[Z])
+    endpoint_marker(ax, hist["iter"][-1], hist["rho"][-1], status,
+                    row1_style[Z]["color"])
+ax.axhline(ROW1_TOL, **LEVEL_STYLE)
+ax.set_xlim(-1, 51)
 ax.set_ylim(*MERIT_YLIM)
-loggrid(ax)
+log_ticks(ax, every=6)
+ax.set_xlabel("iteration $k$")
+ax.set_ylabel(r"$\rho(z^k)$")
 save_panel(fig, "trajectory_c")
 
 # === (d) Normalized spectral recovery ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
-ax.plot(omegas, x_base, "k--", linewidth=1.2)
+fig, ax = plt.subplots(figsize=PANEL_SIZE)
+ax.plot(omegas, x_base, **TRUTH_STYLE, zorder=1)
 for Z in ROW2_Zs:
     r = row2_results[Z]
     if not r["converged"]:
         continue
-    ax.plot(omegas, r["x"] / Z, color=row2_colors[Z])
+    ax.plot(omegas, r["x"] / Z, **row2_style[Z], zorder=2)
+ax.set_xlim(*OMEGA_XLIM)
+ax.set_ylim(bottom=0)
 ax.set_xlabel(r"$\omega$")
 ax.set_ylabel(r"$\hat{x} / Z$")
-truth_handle = mlines.Line2D([], [], color="k", linestyle="--",
-                             linewidth=1.2, label=r"truth $x_{\rm base}$")
-ax.legend(handles=[truth_handle], fontsize=7, loc="upper right")
-loggrid(ax)
 save_panel(fig, "trajectory_d")
 
 # === (e) Scale trajectory tau_k ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
+fig, ax = plt.subplots(figsize=PANEL_SIZE)
+for Z in ROW2_Zs:
+    ax.axhline(Z, **LEVEL_STYLE)
 for Z in ROW2_Zs:
     r = row2_results[Z]
     if not r["converged"]:
         continue
     h = r["history"]
-    ax.semilogy(h["iter"], h["tau"], color=row2_colors[Z], marker="o")
-    ax.axhline(Z, color=row2_colors[Z], linestyle="--",
-               linewidth=0.7, alpha=0.5)
-ax.set_xlabel("Iteration $k$")
+    ax.semilogy(h["iter"], h["tau"], **row2_style[Z], zorder=2)
+ax.set_xlim(-0.5, 13)
+ax.set_xticks([0, 4, 8, 12])
+ax.set_ylim(0.6, 200)
+log_ticks(ax, every=1)
+ax.set_xlabel("iteration $k$")
 ax.set_ylabel(r"$\tau_k$")
-loggrid(ax)
 save_panel(fig, "trajectory_e")
 
 # === (f) Algorithm 1 merit (row 2) ===
-fig, ax = plt.subplots(figsize=PANEL_SIZE, layout="constrained")
+fig, ax = plt.subplots(figsize=PANEL_SIZE)
 for Z in ROW2_Zs:
     r = row2_results[Z]
     if not r["converged"]:
         continue
     h = r["history"]
-    ax.semilogy(h["iter"], h["rho"], color=row2_colors[Z], marker="o")
-ax.set_xlabel("Iteration $k$")
-ax.set_ylabel(r"$\rho(z^k) = \|F(z^k)\|$")
+    ax.semilogy(h["iter"], h["rho"], **row2_style[Z])
+    endpoint_marker(ax, h["iter"][-1], h["rho"][-1], "converged",
+                    row2_style[Z]["color"])
+ax.axhline(ROW2_TOL, **LEVEL_STYLE)
+ax.set_xlim(-0.5, 13)
+ax.set_xticks([0, 4, 8, 12])
 ax.set_ylim(*MERIT_YLIM)
-loggrid(ax)
+log_ticks(ax, every=6)
+ax.set_xlabel("iteration $k$")
+ax.set_ylabel(r"$\rho(z^k)$")
 save_panel(fig, "trajectory_f")
 
 
 # === Legend strips (one per row) ===
-def save_legend_strip(handles, stem, figsize=(TEXTWIDTH, 0.28)):
+def save_legend_strip(handles, stem, figsize=(TEXTWIDTH, 0.2)):
     fig = plt.figure(figsize=figsize)
-    fig.legend(handles=handles, loc="center",
-               ncol=len(handles), columnspacing=1.8,
-               handletextpad=0.4, frameon=False)
+    fig.legend(handles=handles, loc="center", ncol=len(handles))
     out = FIG_DIR / f"{stem}.pdf"
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
@@ -257,14 +263,14 @@ def save_legend_strip(handles, stem, figsize=(TEXTWIDTH, 0.28)):
 
 
 row1_handles = [
-    mlines.Line2D([], [], color=row1_colors[Z], marker="o", markersize=3,
+    mlines.Line2D([], [], **row1_style[Z],
                   label=fr"$Z = 2^{{{int(np.log2(Z))}}}$")
     for Z in ROW1_Zs
 ]
 row2_handles = [
-    mlines.Line2D([], [], color=row2_colors[Z], marker="o", markersize=3,
+    mlines.Line2D([], [], **row2_style[Z],
                   label=fr"$Z = 10^{{{int(np.log10(Z))}}}$")
     for Z in ROW2_Zs
-]
+] + [mlines.Line2D([], [], **TRUTH_STYLE, label=r"truth $p^\natural$")]
 save_legend_strip(row1_handles, "trajectory_legend_row1")
 save_legend_strip(row2_handles, "trajectory_legend_row2")

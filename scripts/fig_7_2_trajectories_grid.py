@@ -1,15 +1,19 @@
-"""Section 7.2 trajectory grid (prototype: single combined PDF).
+"""Section 7.2 trajectory grid (Figure 7.2 of the paper; single PDF).
 
 Replaces the 8-PDF (6 panels + 2 legend strips) layout of
-``fig_7_iteration_trajectories.py`` with one figure assembled internally
-via gridspec. The two row-legends sit in dedicated narrow rows above
-their panels; panel labels (a)-(f) live as in-axes titles, so the
-LaTeX subfigure captions vanish.
+``fig_7_iteration_trajectories.py`` with one figure drawn at its printed
+size (``TEXTWIDTH`` = siamart \\textwidth). Each row has a legend for its Z
+sweep above it; each panel has an "(a) ..." caption below it.
 
 Output:
   figures/trajectory_grid.pdf   single 2x3 panel figure
+
+Options (presentation only):
+  --log-d       panel (d) on a log y-axis
+  --out PATH    write to PATH instead of figures/trajectory_grid.pdf
 """
 
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -21,7 +25,10 @@ import matplotlib.lines as mlines
 import matplotlib.transforms as mtransforms
 
 from scaleshape import generate_ueg_problem, naive_dual_newton, scaleshape_solve
-from scaleshape.figstyle import setup as figsetup, loggrid, TEXTWIDTH
+from scaleshape.figstyle import (
+    setup as figsetup, TEXTWIDTH, ANNOT_FONTSIZE, LEVEL_STYLE,
+    series, log_ticks, panel_caption, endpoint_marker, align_columns,
+)
 
 figsetup()
 
@@ -97,48 +104,29 @@ for Z in ROW2_Zs:
         history=res["history"],
     )
 
-TERM_STYLE = {
-    "converged":      dict(marker="o", color="green", s=50, edgecolors="black", linewidths=0.8),
-    "armijo_fatal":   dict(marker="v", color="red",   s=50, edgecolors="black", linewidths=0.8),
-    "overflow_fatal": dict(marker="X", color="red",   s=50, edgecolors="black", linewidths=0.8),
-    "max_iters":      dict(marker="s", color="white", s=50, edgecolors="gray",  linewidths=1.2),
-}
 
+# --- Presentation ---
+# Panel (d) is linear by default. ``--log-d`` draws it on a log axis instead
+# (as Figure 7.1(b)); ``--out PATH`` writes to PATH instead of figures/.
+PANEL_D_LOG = "--log-d" in sys.argv
+OUT = (Path(sys.argv[sys.argv.index("--out") + 1]) if "--out" in sys.argv
+       else FIG_DIR / "trajectory_grid.pdf")
 
-def endpoint_marker(ax, iters, values, status):
-    style = TERM_STYLE.get(status, TERM_STYLE["max_iters"])
-    ax.scatter([iters[-1]], [values[-1]], zorder=10, clip_on=False, **style)
+row1_style = {Z: series(i) for i, Z in enumerate(ROW1_Zs)}
+row2_style = {Z: series(i) for i, Z in enumerate(ROW2_Zs)}
+MERIT_YLIM = (1e-14, 1e5)   # shared by (b), (c), (f)
+ITER_XLIM_ROW1 = (-1, 51)   # shared by (a), (b), (c)
+ITER_XLIM_ROW2 = (-0.5, 13)
+TRUTH_STYLE = dict(color="0.78", linewidth=2.0, solid_capstyle="butt")
+OMEGA_XLIM = (0.0, 1.5)   # x_base is < 1e-3 max(x_base) for omega > 1.37
 
+# Two subfigures (one per row); each carries its Z legend above its panels.
+fig = plt.figure(figsize=(TEXTWIDTH, 2.65))
+sf1, sf2 = fig.subfigures(2, 1, hspace=0.07)
+ax_a, ax_b, ax_c = sf1.subplots(1, 3)
+ax_d, ax_e, ax_f = sf2.subplots(1, 3)
 
-row1_colors = {16: "C0", 64: "C1", 256: "C2", 1024: "C3"}
-row2_colors = {1: "C0", 10: "C1", 100: "C2"}
-MERIT_YLIM = (1e-14, 1e5)
-
-
-# --- Combined figure ---
-# 4-row gridspec: thin legend row, panel row, thin legend row, panel row.
-# height_ratios chosen so each panel ends with ~3:5 aspect (h:w),
-# tighter than the 4:3 of the per-panel PDFs.
-fig = plt.figure(figsize=(TEXTWIDTH, 3.1), layout="constrained")
-gs = fig.add_gridspec(
-    nrows=4, ncols=3,
-    height_ratios=[0.10, 1.0, 0.10, 1.0],
-    hspace=0.05, wspace=0.05,
-)
-
-ax_leg1 = fig.add_subplot(gs[0, :])
-ax_a = fig.add_subplot(gs[1, 0])
-ax_b = fig.add_subplot(gs[1, 1])
-ax_c = fig.add_subplot(gs[1, 2])
-ax_leg2 = fig.add_subplot(gs[2, :])
-ax_d = fig.add_subplot(gs[3, 0])
-ax_e = fig.add_subplot(gs[3, 1])
-ax_f = fig.add_subplot(gs[3, 2])
-
-for spacer in (ax_leg1, ax_leg2):
-    spacer.axis("off")
-
-# (a) max-exponent
+# (a) max-exponent xi_k of the unsafeguarded full Newton step
 for Z in ROW1_Zs:
     hist = row1_classical[Z]["history"]
     arr = np.array(hist["full_step_max_exp_arg"], dtype=float)
@@ -146,102 +134,128 @@ for Z in ROW1_Zs:
         continue
     arr_clipped = np.maximum(arr, 1.0)
     iters = np.arange(arr.size)
-    ax_a.semilogy(iters, arr_clipped, marker="o", color=row1_colors[Z])
-    endpoint_marker(ax_a, iters, arr_clipped, row1_classical[Z]["status"])
-ax_a.axhline(OVERFLOW_LOG_THRESHOLD, color="k", linestyle="--", linewidth=0.8)
+    ax_a.semilogy(iters, arr_clipped, **row1_style[Z])
+    endpoint_marker(ax_a, iters[-1], arr_clipped[-1],
+                    row1_classical[Z]["status"], row1_style[Z]["color"])
+ax_a.axhline(OVERFLOW_LOG_THRESHOLD, color="black", linestyle=(0, (4, 2)),
+             linewidth=0.7, zorder=1)
 trans_a = mtransforms.blended_transform_factory(ax_a.transAxes, ax_a.transData)
-ax_a.text(0.97, OVERFLOW_LOG_THRESHOLD * 1.15, "overflow threshold",
-          transform=trans_a, ha="right", va="bottom", fontsize=7, color="0.3")
-ax_a.set_ylabel(r"$\max_i\, [A^\top\!(y+d) - \mathbf{1} - c]_i$")
+ax_a.text(0.98, OVERFLOW_LOG_THRESHOLD * 1.3, "overflow threshold",
+          transform=trans_a, ha="right", va="bottom",
+          fontsize=ANNOT_FONTSIZE, color="black")
+ax_a.set_ylim(1, 1e5)
+ax_a.set_ylabel(r"exponent $\xi_k$")
 
-# (b)
+# (b) classical dual Newton gradient norm
 for Z in ROW1_Zs:
     hist = row1_classical[Z]["history"]
     if hist["iter"]:
-        ax_b.semilogy(hist["iter"], hist["grad_norm"], marker="o",
-                      color=row1_colors[Z])
-        endpoint_marker(ax_b, hist["iter"], hist["grad_norm"],
-                        row1_classical[Z]["status"])
+        ax_b.semilogy(hist["iter"], hist["grad_norm"], **row1_style[Z])
+        endpoint_marker(ax_b, hist["iter"][-1], hist["grad_norm"][-1],
+                        row1_classical[Z]["status"], row1_style[Z]["color"])
 ax_b.set_ylabel(r"$\|\nabla \psi_d(y^k)\|$")
 
-# (c)
+# (c) Algorithm 1 merit
 for Z in ROW1_Zs:
     ra = row1_alg1[Z]
     hist = ra["history"]
     status = "converged" if ra["rho"] < ALG1_TOL else "max_iters"
-    ax_c.semilogy(hist["iter"], hist["rho"], marker="o", color=row1_colors[Z])
-    endpoint_marker(ax_c, hist["iter"], hist["rho"], status)
-ax_c.set_ylabel(r"$\rho(z^k) = \|F(z^k)\|$")
-ax_c.set_ylim(*MERIT_YLIM)
+    ax_c.semilogy(hist["iter"], hist["rho"], **row1_style[Z])
+    endpoint_marker(ax_c, hist["iter"][-1], hist["rho"][-1], status,
+                    row1_style[Z]["color"])
+ax_c.set_ylabel(r"$\rho(z^k)$")
 
 for ax in (ax_a, ax_b, ax_c):
-    ax.set_xlabel("Iteration $k$", labelpad=2)
-    loggrid(ax)
+    ax.set_xlabel("iteration $k$")
+    ax.set_xlim(*ITER_XLIM_ROW1)
 
-# (d) shape recovery
-ax_d.plot(omegas, x_base, "k--", linewidth=1.2)
+# (d) shape recovery: truth as a gray band, recoveries on top
+ax_d.plot(omegas, x_base, **TRUTH_STYLE, zorder=1)
 for Z in ROW2_Zs:
     r = row2_results[Z]
     if not r["converged"]:
         continue
-    ax_d.plot(omegas, r["x"] / Z, color=row2_colors[Z])
-ax_d.set_xlabel(r"$\omega$", labelpad=2)
+    ax_d.plot(omegas, r["x"] / Z, **row2_style[Z], zorder=2)
+ax_d.set_xlim(*OMEGA_XLIM)
+if PANEL_D_LOG:
+    ax_d.set_yscale("log")
+    ax_d.set_ylim(1e-6, 0.3)
+    log_ticks(ax_d, every=2)
+else:
+    ax_d.set_ylim(bottom=0)
+ax_d.set_xlabel(r"$\omega$")
 ax_d.set_ylabel(r"$\hat{x} / Z$")
-truth_handle = mlines.Line2D([], [], color="k", linestyle="--",
-                             linewidth=1.2, label=r"truth $x_{\rm base}$")
-ax_d.legend(handles=[truth_handle], fontsize=7, loc="upper right")
-loggrid(ax_d)
 
-# (e)
+# (e) scale trajectory with targets tau* = Z
+for Z in ROW2_Zs:
+    ax_e.axhline(Z, **LEVEL_STYLE)
 for Z in ROW2_Zs:
     r = row2_results[Z]
     if not r["converged"]:
         continue
     h = r["history"]
-    ax_e.semilogy(h["iter"], h["tau"], color=row2_colors[Z], marker="o")
-    ax_e.axhline(Z, color=row2_colors[Z], linestyle="--",
-                 linewidth=0.7, alpha=0.5)
-ax_e.set_xlabel("Iteration $k$", labelpad=2)
+    ax_e.semilogy(h["iter"], h["tau"], **row2_style[Z], zorder=2)
+ax_e.set_ylim(0.6, 200)
+ax_e.set_xlabel("iteration $k$")
 ax_e.set_ylabel(r"$\tau_k$")
-loggrid(ax_e)
 
-# (f)
+# (f) Algorithm 1 merit
 for Z in ROW2_Zs:
     r = row2_results[Z]
     if not r["converged"]:
         continue
     h = r["history"]
-    ax_f.semilogy(h["iter"], h["rho"], color=row2_colors[Z], marker="o")
-ax_f.set_xlabel("Iteration $k$", labelpad=2)
-ax_f.set_ylabel(r"$\rho(z^k) = \|F(z^k)\|$")
-ax_f.set_ylim(*MERIT_YLIM)
-loggrid(ax_f)
+    ax_f.semilogy(h["iter"], h["rho"], **row2_style[Z])
+    endpoint_marker(ax_f, h["iter"][-1], h["rho"][-1], "converged",
+                    row2_style[Z]["color"])
+ax_f.set_xlabel("iteration $k$")
+ax_f.set_ylabel(r"$\rho(z^k)$")
 
-# Per-panel tags above the axes; descriptive names live in the LaTeX caption.
-PANELS = [(ax_a, "(a)"), (ax_b, "(b)"), (ax_c, "(c)"),
-          (ax_d, "(d)"), (ax_e, "(e)"), (ax_f, "(f)")]
-for ax, tag in PANELS:
-    ax.set_title(tag, loc="left", fontsize=8, pad=2)
+for ax in (ax_e, ax_f):
+    ax.set_xlim(*ITER_XLIM_ROW2)
+    ax.set_xticks([0, 4, 8, 12])
 
-# Row legends
+# Common scale and stopping tolerance on the three convergence panels.
+for ax in (ax_b, ax_c, ax_f):
+    ax.set_ylim(*MERIT_YLIM)
+    log_ticks(ax, every=6)
+    ax.axhline(ALG1_TOL, **LEVEL_STYLE)
+log_ticks(ax_a, every=2)
+log_ticks(ax_e, every=1)
+
+# Panel captions: method and quantity; the figure caption in the paper
+# describes each panel in full. Kept short so that no caption is wider than
+# its panel, which would widen that column in constrained layout.
+CAPTIONS = [
+    (ax_a, "(a) Standard, exponent"), (ax_b, "(b) Standard, gradient"),
+    (ax_c, "(c) Scale-shape, merit"), (ax_d, "(d) Computed solutions"),
+    (ax_e, "(e) Scale trajectory"), (ax_f, "(f) Merit convergence"),
+]
+for ax, text in CAPTIONS:
+    panel_caption(ax, text)
+
+# Row legends above each row
 row1_handles = [
-    mlines.Line2D([], [], color=row1_colors[Z], marker="o", markersize=3,
+    mlines.Line2D([], [], **row1_style[Z],
                   label=fr"$Z = 2^{{{int(np.log2(Z))}}}$")
     for Z in ROW1_Zs
 ]
 row2_handles = [
-    mlines.Line2D([], [], color=row2_colors[Z], marker="o", markersize=3,
+    mlines.Line2D([], [], **row2_style[Z],
                   label=fr"$Z = 10^{{{int(np.log10(Z))}}}$")
     for Z in ROW2_Zs
-]
-ax_leg1.legend(handles=row1_handles, loc="center", ncol=4,
-               columnspacing=2.0, handletextpad=0.4, frameon=False,
-               fontsize=8)
-ax_leg2.legend(handles=row2_handles, loc="center", ncol=3,
-               columnspacing=2.0, handletextpad=0.4, frameon=False,
-               fontsize=8)
+] + [mlines.Line2D([], [], **TRUTH_STYLE, label=r"truth $p^\natural$")]
+sf1.legend(handles=row1_handles, loc="outside upper center",
+           ncol=len(row1_handles))
+sf2.legend(handles=row2_handles, loc="outside upper center",
+           ncol=len(row2_handles))
 
-out = FIG_DIR / "trajectory_grid.pdf"
-fig.savefig(out)
+for sf in (sf1, sf2):
+    sf.align_xlabels()
+
+# Lay out once, then give each column of panels a common width.
+align_columns(fig, [(ax_a, ax_d), (ax_b, ax_e), (ax_c, ax_f)])
+
+fig.savefig(OUT)
 plt.close(fig)
-print(f"Saved {out}")
+print(f"Saved {OUT}")

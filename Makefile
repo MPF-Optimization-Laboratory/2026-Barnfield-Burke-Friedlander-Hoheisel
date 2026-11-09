@@ -18,6 +18,7 @@
 RUN ?= uv run python
 
 FIGURES := figures/problem_data.pdf \
+           figures/trajectory_grid.pdf \
            figures/trajectory_a.pdf \
            figures/trajectory_b.pdf \
            figures/trajectory_c.pdf \
@@ -43,8 +44,12 @@ all: test figures
 
 figures: $(FIGURES)
 
-figures/problem_data.pdf: scripts/fig_7_1_problem_data.py
+figures/problem_data.pdf: scripts/fig_7_1_problem_data.py src/scaleshape/figstyle.py
 	$(RUN) scripts/fig_7_1_problem_data.py
+
+# Figure 7.2 as included in the paper (single PDF).
+figures/trajectory_grid.pdf: scripts/fig_7_2_trajectories_grid.py src/scaleshape/figstyle.py
+	$(RUN) scripts/fig_7_2_trajectories_grid.py
 
 TRAJECTORY_PANELS := figures/trajectory_a.pdf \
                      figures/trajectory_b.pdf \
@@ -55,10 +60,11 @@ TRAJECTORY_PANELS := figures/trajectory_a.pdf \
                      figures/trajectory_legend_row1.pdf \
                      figures/trajectory_legend_row2.pdf
 
-$(TRAJECTORY_PANELS): scripts/fig_7_iteration_trajectories.py
+# Legacy per-panel layout of Figure 7.2 (six panels + two legend strips).
+$(TRAJECTORY_PANELS): scripts/fig_7_iteration_trajectories.py src/scaleshape/figstyle.py
 	$(RUN) scripts/fig_7_iteration_trajectories.py
 
-figures/regularization_path_rel.pdf: scripts/fig_7_4_regularization_path.py
+figures/regularization_path_rel.pdf: scripts/fig_7_4_regularization_path.py src/scaleshape/figstyle.py
 	$(RUN) scripts/fig_7_4_regularization_path.py
 
 test:
