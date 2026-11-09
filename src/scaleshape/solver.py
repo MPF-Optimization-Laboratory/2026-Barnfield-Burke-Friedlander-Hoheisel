@@ -360,9 +360,10 @@ def scaleshape_solve(
     # Algorithm 1, Step 1: precompute tau_min_hat via the Lambert-W bound of
     # Lemma 3.1(ii). tau_floor = 0.5 * tau_min_hat is the safeguard Step 3 uses
     # to keep tau_k + alpha_bar * dtau_k uniformly bounded away from 0.
-    # When A_max/lam is large, the exponential in zeta can underflow to 0 in
-    # float64, yielding a computed tau_min_hat of 0. In that regime any small
-    # positive value is a valid lower estimate; we fall back to _TAU_FLOOR_MIN.
+    # The bound is evaluated in the log domain, but for large beta it can still
+    # underflow to 0 in float64. We then fall back to _TAU_FLOOR_MIN, which is
+    # not guaranteed to be a lower estimate of tau_{beta,min}; in the paper's
+    # experiments the safeguard is never active, so this does not matter there.
     # Local import: utils.py imports from solver.py, so a module-top import
     # would create a circular dependency.
     from .utils import lambert_w_bounds

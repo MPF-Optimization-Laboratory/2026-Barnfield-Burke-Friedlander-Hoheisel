@@ -9,7 +9,7 @@ Provides:
 
 import numpy as np
 from numpy.linalg import norm
-from scipy.special import lambertw
+from scipy.special import lambertw, logsumexp
 
 from .solver import Model, scaleshape_solve  # re-exported for convenience
 
@@ -131,15 +131,49 @@ def lambert_w_bounds(A, b, c, mu, lam, beta):
     w_upper = float(np.real(lambertw(arg_upper)))
     tau_max = float(B / w_upper) if w_upper > 0 else np.inf
 
-    # Lower bound: τ_min ≥ (λ / A_max²) · W(ζ)
-    q_min = float(np.min(mu))
-    zeta = (1 / lam) * A_max**2 * q_min * np.exp(-1 - beta - c_max - (1 / lam) * A_max * (b_norm + beta))
-    if zeta > 0:
-        tau_min = float((lam / A_max**2) * np.real(lambertw(zeta)))
-    else:
-        tau_min = 0.0
+    # Lower bound (Lemma 3.1(ii)): τ_min ≥ C̃ · exp(−W(ζ̃)), with
+    #   Σ₀ = ⟨q, exp(Aᵀb/λ − c)⟩,  g₀ = A p(b/λ),  κ₀ = max_i ⟨g₀, A_i⟩,
+    #   C̃ = Σ₀ exp(−1 − (β/λ)·sqrt(λ² + ‖g₀‖²)),  ζ̃ = κ₀ C̃ / λ.
+    # Σ₀ overflows for small λ, so everything is evaluated in the log domain.
+    log_tau_min = _log_tau_min_bound(A, b, c, mu, lam, beta)
+    tau_min = float(np.exp(log_tau_min))  # may underflow to 0.0
 
     return tau_min, tau_max
+
+
+def _log_lambertw_of_log(s):
+    """log W(x) given s = log x ≥ −∞, robust for any real s."""
+    if s == -np.inf:
+        return -np.inf
+    if s < -30:
+        return s  # W(x) = x − x² + …, relative error < e^{−30}
+    if s < 20:
+        return float(np.log(np.real(lambertw(np.exp(s)))))
+    w = s - np.log(s)  # W(x) solves w + log w = s; Newton from the asymptote
+    for _ in range(50):
+        step = (w + np.log(w) - s) / (1 + 1 / w)
+        w -= step
+        if abs(step) <= 1e-15 * w:
+            break
+    return float(np.log(w))
+
+
+def _log_tau_min_bound(A, b, c, mu, lam, beta):
+    """log of the Lemma 3.1(ii) lower bound C̃ e^{−W(ζ̃)} on τ_{β,min}."""
+    A = np.asarray(A, dtype=float)
+    mu = np.asarray(mu, dtype=float)
+    u = A.T @ (np.asarray(b, dtype=float) / lam) - np.asarray(c, dtype=float)
+    log_Sigma0 = float(logsumexp(u, b=mu))
+    with np.errstate(divide="ignore"):
+        p0 = np.exp(u + np.log(mu) - log_Sigma0)
+    g0 = A @ p0
+    kappa0 = float(np.max(A.T @ g0))
+    log_C = log_Sigma0 - 1 - (beta / lam) * np.sqrt(lam**2 + float(g0 @ g0))
+    if kappa0 <= 0:
+        return log_C  # W(0) = 0
+    log_k_over_lam = np.log(kappa0) - np.log(lam)
+    # C̃ e^{−W(ζ̃)} = (λ/κ₀) W(ζ̃),  log ζ̃ = log κ₀ + log C̃ − log λ
+    return float(_log_lambertw_of_log(log_k_over_lam + log_C) - log_k_over_lam)
 
 
 def make_random_problem(m, n, seed=42):
